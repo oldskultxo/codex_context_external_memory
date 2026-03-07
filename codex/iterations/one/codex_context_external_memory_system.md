@@ -1,10 +1,12 @@
-# Claude Code Context System
+# Codex Context System
+
+This document defines a prompt and operating model so Codex can replicate the same persistent external-memory system, generalized for a folder containing multiple projects.
 
 Use `FOLDER_PATH` as the base directory where the memory system will live.
 
 ## Goal
 
-Create and maintain a persistent, low-cost external memory layer that Claude Code uses before relying on the active conversation context.
+Create and maintain a persistent, low-cost external memory layer that Codex uses before relying on the active conversation context.
 
 The system should:
 - work across multiple projects inside one root folder
@@ -28,11 +30,19 @@ If kept clean and updated, the system should also improve response quality by ma
 
 Use this at the beginning of each session:
 
-`Use the external memory system in /FOLDER_PATH/claude_context first, then load user defaults with ctx --prefs, and follow those preferences unless this turn contains explicit overrides.`
+`Use the external memory system in FOLDER_PATH as your first memory layer. Query it before analyzing, use active context and code inspection only as fallback, and update it after meaningful fixes or confirmed learnings.`
 
-## Claude Code Prompt
+Short version:
 
-Use the following prompt in Claude Code.
+`Use the external memory system in FOLDER_PATH first.`
+
+Extended startup (recommended):
+
+`Use the external memory system in FOLDER_PATH first, then load user defaults with ctx --prefs, and follow those preferences unless this turn contains explicit overrides.`
+
+## Codex Prompt
+
+Use the following prompt in Codex.
 
 ```text
 You will create and maintain a persistent external memory system rooted at FOLDER_PATH.
@@ -137,11 +147,12 @@ Ranking and lookup behavior:
 - Use tags to improve matching by layer or concern (for example: ui, state, backend, api, infra, runtime, persistence).
 
 Operational rules:
-- On each task, first query the memory system using the best available keyword or symptom.
-- Also check `ctx --prefs` when user-style defaults can change execution behavior (intermediate feedback, tests/build/docs defaults, output style).
+- On each task, read `index.json` first, identify the smallest relevant note, and read that note directly.
+- Read `user_preferences.json` at session start and apply preferences silently.
+- `ctx`/`query.py` are optional CLI helpers; direct file reads are the primary workflow.
 - Preference precedence:
   - current explicit user instruction > stored `user_preferences.json` > assistant defaults.
-- If the same user preference is repeated and stable, persist it with `prefer` / `set_preference.py`.
+- If the same user preference is repeated and stable, persist it by updating `user_preferences.json` (or via `prefer` / `set_preference.py`).
 - Read only the smallest relevant note or notes.
 - If the memory is missing something, inspect code and runtime normally.
 - If code/runtime disproves the memory, trust code/runtime and then update the memory system.
@@ -149,6 +160,7 @@ Operational rules:
   - update an existing note
   - add a new note
   - or update open-edges / decision notes if the issue affects future risk
+- Never ask the user to trigger memory updates manually; do them proactively.
 
 Quality bar:
 - Keep the system append-light and edit-heavy.
@@ -164,17 +176,17 @@ When you initialize the system:
 5. Ensure the query tools work immediately
 
 When you use the system in future tasks:
-- default to the `ctx` command
-- default to `ctx --prefs` early in the task when execution style matters
+- default to direct reads (`index.json` + relevant note + `user_preferences.json`) at task start
 - treat it as the first external memory layer
 - keep it updated without needing explicit user reminders
 - if user workflow habits become consistent, record them in `user_preferences.json` so they carry across sessions
+- only surface memory contents in responses when they directly affect execution decisions
 
 Only stop using this system if the user explicitly tells you to disable it.
 
 Recommended Initialization Sequence
 
-When Claude Code first receives the prompt:
+When Codex first receives the prompt:
 
 1. Create `FOLDER_PATH`
 2. Create the base file structure
@@ -183,10 +195,9 @@ When Claude Code first receives the prompt:
 5. Seed `common/` with generic debugging and UI/state pitfalls
 6. Create `projects/` and let project-specific notes accumulate over time
 7. Test:
-   - `ctx <keyword>`
-   - `ctx --open <keyword>`
-   - `ctx --json <keyword>`
-   - `ctx --prefs`
+   - verify `index.json` and `user_preferences.json` can be read directly
+   - verify one targeted note can be read directly
+   - use CLI checks (`ctx`, `ctx --json`) only as optional sanity checks
 
 Practical Notes
 
@@ -194,7 +205,7 @@ Practical Notes
 - Project-specific notes should be added only when validated by actual work.
 - Common notes should capture patterns that genuinely repeat across projects.
 - If a note becomes stale or noisy, it should be merged, tightened, or removed.
-- For automatic usage across repositories, place an `AGENTS.md` in a common ancestor directory (for example `/Users/user/Documents/projects/AGENTS.md`) with explicit instructions to always run `ctx` + `ctx --prefs` first.
+- For automatic usage across repositories, place an `AGENTS.md` in a common ancestor directory (for example `/Users/santisantamaria/Documents/projects/AGENTS.md`) with explicit instructions to always read `index.json` and `user_preferences.json` first.
 - In that `AGENTS.md`, encode preference precedence and the rule to persist repeated user habits (`no intermediate feedback`, `always run tests`, `always run build`, `always update docs`, etc.).
 
 
