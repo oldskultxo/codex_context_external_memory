@@ -1,255 +1,258 @@
-# Codex Context Engine
 
-**Codex Context Engine** is a prompt-driven system that improves how Codex (and similar coding agents) manage context when working with real software repositories.
-Instead of repeatedly sending large prompts explaining the project, the engine installs a **persistent context system** inside the repository.
-This allows Codex to reuse knowledge across sessions, reduce token usage, and reason more efficiently about the codebase.
+# codex_context_engine
 
-The project evolves through **incremental iterations**, each adding new capabilities to the engine.
+An external memory and context orchestration engine for Codex.
+
+The `codex_context_engine` is an external memory and context orchestration layer designed to help Codex work on complex projects without repeatedly rediscovering the same information.
+
+Instead of reconstructing context from scratch on every task, the engine progressively builds, optimizes and connects contextual knowledge across executions.
+
+The result is a system that becomes **more efficient, more aware of project structure, and less prone to repeating mistakes over time.**
 
 ---
 
 # Core Idea
-AI coding agents normally restart every session with no persistent memory of the project.
-That means they must repeatedly learn:
-- project architecture
-- debugging patterns
-- coding conventions
-- workflow decisions
-- user preferences
 
-This leads to:
-- large prompts
-- wasted tokens
-- slower responses
-- inconsistent results
+Large coding tasks often fail not because of model capability, but because of **context loss**.
 
-Codex Context Engine introduces a different approach:
+Each run typically starts with limited awareness of:
 
-> Treat context as a **persistent system** instead of a repeated prompt.
+- project structure
+- previous decisions
+- past failures
+- task-specific knowledge
 
-The engine stores useful knowledge in the repository and retrieves only the relevant information when a task is executed.
+This leads to repeated exploration, unnecessary context loading, and duplicated reasoning.
+
+`codex_context_engine` addresses this by introducing an **autoincremental context layer** that persists and evolves contextual knowledge across runs.
+
+Instead of starting from zero, the engine gradually accumulates understanding of the project.
 
 ---
 
-# How It Works
-The system is installed using a **root orchestrator prompt**:
+# How the Engine Works
 
-```text
-codex_context_engine.md
+The engine follows a layered contextual workflow.
+
+Task  
+↓  
+Context Planner  
+↓  
+Context Cost Optimizer  
+↓  
+Execution  
+↓  
+Failure Memory  
+↓  
+Task-Specific Memory  
+↓  
+Memory Graph
+
+Each layer improves how context is selected, used and remembered.
+
+---
+
+# Engine Architecture
+
+```mermaid
+flowchart TD
+
+A[Task] --> B[Context Planner]
+B --> C[Context Cost Optimizer]
+C --> D[Execution]
+
+D --> E[Failure Memory]
+D --> F[Task-Specific Memory]
+
+E --> G[Memory Graph]
+F --> G
 ```
 
-This root prompt does not implement the engine itself. Instead, it:
-1. detects which engine iteration is already installed in the repository
-2. discovers available iterations in this repo
-3. executes any missing iterations in order
-4. upgrades the engine safely without destroying existing state
+---
 
-This design allows the system to evolve without rewriting the installer every time a new iteration is added.
+# Context Planner
+
+Determines **which contextual resources should be loaded** for a given task.
+
+Responsibilities:
+
+- detect task type
+- select relevant context sources
+- control context depth
+- avoid unnecessary exploration
+
+Goal: load the *right* context before execution begins.
 
 ---
 
-# Repository Structure
+# Context Cost Optimizer
 
-```text
-codex_context_engine/
-│
-├─ codex_context_engine.md      Root installer / upgrader prompt
-├─ README.md                    Project documentation
-└─ codex/
-   └─ iterations/
-      ├─ 1/
-      │  ├─ readme.md
-      │  └─ prompt.md
-      ├─ 2/
-      │  ├─ readme.md
-      │  └─ prompt.md
-      ├─ 3/
-      │  ├─ readme.md
-      │  └─ prompt.md
-      ├─ 4/
-      │  ├─ readme.md
-      │  └─ prompt.md
-      ├─ 5/
-      │  ├─ readme.md
-      │  └─ prompt.md
-      └─ ...
-```
+Reduces token usage and latency by filtering context before it reaches the model.
 
-Each iteration introduces a new layer of capabilities.
-The **root orchestrator automatically applies all missing iterations**.
+Responsibilities:
+
+- deduplicate context blocks
+- score contextual relevance
+- filter oversized or low-value entries
+- prioritize useful context
+
+Goal: ensure only high-value context is sent to the model.
 
 ---
 
-# Installation
-To install or upgrade the engine in a repository:
-1. Open the root prompt:
+# Failure Memory
 
-```text
-codex_context_engine.md
-```
+Captures knowledge about **what did not work**.
 
-2. Execute it inside the target repository using Codex.
+Responsibilities:
 
-The prompt will:
-- detect existing installations
-- determine the current iteration
-- apply the missing iterations
-- upgrade the engine safely
+- record failed attempts
+- detect recurring friction points
+- surface relevant failure patterns
 
-This works for both:
-- fresh installations
-- upgrading existing installations
+Goal: prevent the engine from repeating ineffective strategies.
 
 ---
 
-# Iteration Model
-The engine evolves through incremental iterations.
-Each iteration adds new functionality while preserving compatibility with previous ones.
+# Task-Specific Memory
 
-## Iteration 1 — External Memory Foundation
-Introduces the concept of **persistent context memory** stored inside the repository.
+Stores contextual knowledge associated with specific types of tasks.
 
-Main ideas:
-- reusable project knowledge
-- persistent preferences
-- graceful fallback behavior
+Responsibilities:
 
----
+- classify tasks into contextual domains
+- persist task-related insights
+- retrieve domain-relevant context
 
-## Iteration 2 — Structured Context System
-Adds structure and observability.
-
-New capabilities:
-- structured `.codex_memory`
-- telemetry for token/context savings
-- validation and system diagnostics
+Goal: improve contextual precision for repeated workflows.
 
 ---
 
-## Iteration 3 — Smart Context Selection
-Improves how context is selected and maintained.
+# Memory Graph
 
-Features:
-- deterministic context packets
-- relevance scoring for memory entries
-- memory compaction
+Transforms contextual memory into a **connected knowledge structure**.
 
----
+Responsibilities:
 
-## Iteration 4 — Global Metrics & Diagnostics
-Adds cross-project observability and system health monitoring.
+- link tasks, files and decisions
+- map contextual relationships
+- enable graph-based context discovery
 
-Features:
-- global telemetry aggregation
-- system health checks
-- cross-project savings reporting
+Goal: move from isolated memory records to connected contextual knowledge.
 
 ---
 
-## Iteration 5 — Context Cost Optimizer
-Adds a budget-aware optimization layer between packet assembly and model injection.
+# Example
 
-Features:
-- estimated packet cost before injection
-- context budget thresholds
-- value-aware trimming and compression
-- optimization reports and cost observability
+Without the engine:
 
----
+Task → Codex explores the repository → builds context → executes
 
-## Iteration 6 — Context Planner
-Adds a planning layer that predicts which contextual resources should be loaded before execution starts.
+With `codex_context_engine`:
 
-Features:
-- task signal analysis
-- context loading strategy selection
-- pre-selection of relevant repository areas
-- context scope and depth planning
-
----
-
-## Iteration 7 — Failure Memory
-Adds a repository-specific troubleshooting layer that records failures, dead ends, and successful fixes.
-
-Features:
-- structured failure records
-- root cause and solution capture
-- retrieval of past debugging knowledge
-- support for safer repeated execution
+Task  
+↓  
+Planner loads relevant context  
+↓  
+Optimizer filters context  
+↓  
+Codex executes with focused context  
+↓  
+Failure memory records outcome  
+↓  
+Memory graph connects new knowledge
 
 ---
 
-## Iteration 8 — Task-Specific Memory
-Adds specialized memory slices per task type so the engine can retrieve more relevant knowledge depending on the work being done.
+# Key Characteristics
 
-Features:
-- task-category memory storage
-- specialized retrieval by workflow type
-- stronger support for testing, debugging, refactoring, and architecture tasks
-- improved relevance before optimization
+## Autoincremental
 
----
+The engine continuously accumulates contextual understanding across tasks.
 
-## Iteration 9 — Memory Graph
-Adds a graph-based relationship layer over the engine’s memory system.
-
-Features:
-- relationship-aware retrieval
-- graph nodes and edges for repository knowledge
-- bounded connected-context expansion
-- integration with planner and optimizer
-- richer architectural context across related entities
+Each execution improves future executions.
 
 ---
 
-# Design Principles
-The engine follows several key principles.
+## Context-first execution
 
-### Minimal Context
-Only the information needed for the current task should enter the model context.
+Instead of immediately running a task, the engine first determines:
 
-### Persistent Knowledge
-Useful project knowledge should survive across sessions.
-
-### Incremental Evolution
-The system evolves through iterations rather than large rewrites.
-
-### Safe Upgrades
-Upgrades should preserve:
-- memory
-- telemetry
-- project configuration
-
-### Transparent Operation
-The system should be understandable and inspectable inside the repository.
+- what context exists
+- what context is relevant
+- what context should be ignored
 
 ---
 
-# Active Roadmap
-The roadmap is ordered by **impact and operational need**.
+## External memory
 
-| Iteration | Feature |
-|-----------|---------|
-| 5 | Context Cost Optimizer |
-| 6 | Context Planner |
-| 7 | Failure Memory |
-| 8 | Task-Specific Memory |
-| 9 | Memory Graph |
+Contextual knowledge is stored outside the model, allowing:
 
-This order reflects a practical strategy:
-1. reduce context cost first
-2. improve planning next
-3. learn from repeated failures
-4. specialize memory by task type
-5. evolve toward graph-based knowledge
+- persistent project awareness
+- cross-task learning
+- reproducible contextual state
 
 ---
 
-# Summary
-Codex Context Engine explores a simple but powerful idea:
+## Failure-aware learning
 
-> Context should behave like a system, not like a repeated prompt.
+The engine records mistakes and avoids repeating them.
 
-By storing useful knowledge inside repositories and retrieving only relevant information, AI coding agents can become faster, cheaper, and more consistent across sessions.
+This reduces exploration cost and accelerates problem solving.
 
-With Iteration 9, the engine moves beyond isolated memory retrieval and begins connecting knowledge as a **relationship-aware context system**.
+---
+
+# What This Is Not
+
+This project is **not**:
+
+- a prompt collection
+- an AI agent framework
+- a replacement for Codex
+
+Instead, it is a **context orchestration layer** designed to help Codex maintain and evolve contextual understanding across tasks.
+
+---
+
+# Why This Exists
+
+Large AI-assisted projects frequently suffer from:
+
+- context fragmentation
+- repeated discovery work
+- token inefficiency
+- lack of long-term memory
+
+`codex_context_engine` is an experiment in **treating context as a first-class system**, not a temporary prompt artifact.
+
+---
+
+# Current Status
+
+The engine currently implements:
+
+- context planning
+- context optimization
+- persistent failure memory
+- task-specific contextual memory
+- graph-based contextual relationships
+
+Together these components create a layered contextual architecture that progressively improves Codex performance on complex repositories.
+
+---
+
+# Philosophy
+
+The engine follows a simple principle:
+
+> Context should evolve with the project.
+
+Instead of rebuilding understanding every time, the system gradually accumulates structural and experiential knowledge.
+
+Over time this transforms Codex from a stateless assistant into a **context-aware development collaborator**.
+
+---
+
+# License
+
+MIT
