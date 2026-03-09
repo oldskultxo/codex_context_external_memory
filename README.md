@@ -43,6 +43,7 @@ codex_context_engine.md
 ```
 
 This root prompt does not implement the engine itself.
+
 Instead, it:
 1. detects which engine iteration is already installed in the repository
 2. discovers available iterations in this repo
@@ -69,23 +70,21 @@ codex_context_engine
       ├─ 1/
       │  ├─ readme.md
       │  └─ prompt.md
-      │
       ├─ 2/
       │  ├─ readme.md
       │  └─ prompt.md
-      │
       ├─ 3/
       │  ├─ readme.md
       │  └─ prompt.md
-      │
       ├─ 4/
       │  ├─ readme.md
       │  └─ prompt.md
-      │
       ├─ 5/
       │  ├─ readme.md
       │  └─ prompt.md
-      │
+      ├─ 6/
+      │  ├─ readme.md
+      │  └─ prompt.md
       └─ ...
 ```
 
@@ -167,15 +166,27 @@ Features:
 
 ---
 
-## Iteration 5 — Context Cost Optimizer
+## Iteration 5 — Context Planner
 
-Adds a budget-aware optimization layer between packet assembly and model injection.
+Adds a planning layer that predicts which context will likely be needed before execution begins.
 
 Features:
-- estimated packet cost before injection
-- context budget thresholds
-- value-aware trimming and compression
-- optimization reports and cost observability
+- context planning before retrieval
+- predicted repository areas
+- predicted memory categories
+- pre-built context packet inputs
+
+---
+
+## Iteration 6 — Task-Specific Memory
+
+Adds a task-aware memory layer so retrieval and persistence can specialize by workflow type.
+
+Features:
+- task type resolution
+- task-specific memory buckets
+- task-aware retrieval
+- safe fallback to `general`
 
 ---
 
@@ -184,48 +195,38 @@ Features:
 The engine follows several key principles.
 
 ### Minimal Context
-
 Only the information needed for the current task should enter the model context.
 
 ### Persistent Knowledge
-
 Useful project knowledge should survive across sessions.
 
 ### Incremental Evolution
-
 The system evolves through iterations rather than large rewrites.
 
 ### Safe Upgrades
-
 Upgrades should preserve:
 - memory
 - telemetry
 - project configuration
 
 ### Transparent Operation
-
 The system should be understandable and inspectable inside the repository.
 
 ---
 
-# Active Roadmap
+# What This Project Is
 
-The roadmap is now ordered by **impact and operational need**.
+Codex Context Engine is:
+- a context optimization system
+- a persistent knowledge layer for AI coding agents
+- a prompt-based architecture experiment
 
-| Iteration | Feature |
-|-----------|---------|
-| 5 | Context Cost Optimizer |
-| 6 | Context Planner |
-| 7 | Failure Memory |
-| 8 | Task-Specific Memory |
-| 9 | Memory Graph |
+It is **not**:
+- a full AI framework
+- a training system
+- a replacement for good prompts
 
-This order reflects a practical strategy:
-1. reduce context cost first
-2. improve planning next
-3. learn from repeated failures
-4. specialize memory by task type
-5. evolve toward graph-based knowledge
+Instead, it focuses on making **context management smarter and cheaper**.
 
 ---
 
@@ -236,5 +237,3 @@ Codex Context Engine explores a simple but powerful idea:
 > Context should behave like a system, not like a repeated prompt.
 
 By storing useful knowledge inside repositories and retrieving only relevant information, AI coding agents can become faster, cheaper, and more consistent across sessions.
-
-With Iteration 5, the engine begins optimizing not only **what it knows**, but also **how much of that knowledge reaches the model at execution time**.
