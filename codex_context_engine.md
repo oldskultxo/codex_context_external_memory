@@ -362,3 +362,22 @@ Discover available numeric iterations under `iterations/`.
 Determine the target repository installation state.
 
 Then apply the missing iterations in order, safely and incrementally.
+
+## Evolution Roadmap
+
+The engine evolves through incremental capability layers.
+
+Iteration 5 — Context Cost Optimizer
+Reduces token usage and latency by filtering, deduplicating and scoring context blocks before they are sent to the model.
+
+Iteration 6 — Context Planner
+Determines which context should be loaded depending on task type and repository signals.
+
+Iteration 7 — Failure Memory
+Stores previous failures and friction points to avoid repeating ineffective actions.
+
+Iteration 8 — Task-Specific Memory
+Creates specialized contextual memory per task domain.
+
+Iteration 9 — Memory Graph
+Introduces relationship mapping between projects, files, decisions and concepts.

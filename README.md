@@ -2,7 +2,7 @@
 
 **Codex Context Engine** is a prompt-driven system that improves how Codex (and similar coding agents) manage context when working with real software repositories.
 
-Instead of repeatedly sending large prompts explaining the project, the engine installs a **persistent context system** inside the repository.  
+Instead of repeatedly sending large prompts explaining the project, the engine installs a **persistent context system** inside the repository.
 This allows Codex to reuse knowledge across sessions, reduce token usage, and reason more efficiently about the codebase.
 
 The project evolves through **incremental iterations**, each adding new capabilities to the engine.
@@ -14,7 +14,6 @@ The project evolves through **incremental iterations**, each adding new capabili
 AI coding agents normally restart every session with no persistent memory of the project.
 
 That means they must repeatedly learn:
-
 - project architecture
 - debugging patterns
 - coding conventions
@@ -22,7 +21,6 @@ That means they must repeatedly learn:
 - user preferences
 
 This leads to:
-
 - large prompts
 - wasted tokens
 - slower responses
@@ -40,14 +38,12 @@ The engine stores useful knowledge in the repository and retrieves only the rele
 
 The system is installed using a **root orchestrator prompt**:
 
-```
+```text
 codex_context_engine.md
 ```
 
 This root prompt does not implement the engine itself.
-
 Instead, it:
-
 1. detects which engine iteration is already installed in the repository
 2. discovers available iterations in this repo
 3. executes any missing iterations in order
@@ -59,37 +55,41 @@ This design allows the system to evolve without rewriting the installer every ti
 
 # Repository Structure
 
-```
+```text
 codex_context_engine
 │
 ├─ codex_context_engine.md
-│   Root installer / upgrader prompt
+│  Root installer / upgrader prompt
 │
 ├─ README.md
-│   Project documentation
+│  Project documentation
 │
-└─ iterations/
-   ├─ 1/
-   │  ├─ readme.md
-   │  └─ prompt.md
-   │
-   ├─ 2/
-   │  ├─ readme.md
-   │  └─ prompt.md
-   │
-   ├─ 3/
-   │  ├─ readme.md
-   │  └─ prompt.md
-   │
-   ├─ 4/
-   │  ├─ readme.md
-   │  └─ prompt.md
-   │
-   └─ ...
+└─ codex/
+   └─ iterations/
+      ├─ 1/
+      │  ├─ readme.md
+      │  └─ prompt.md
+      │
+      ├─ 2/
+      │  ├─ readme.md
+      │  └─ prompt.md
+      │
+      ├─ 3/
+      │  ├─ readme.md
+      │  └─ prompt.md
+      │
+      ├─ 4/
+      │  ├─ readme.md
+      │  └─ prompt.md
+      │
+      ├─ 5/
+      │  ├─ readme.md
+      │  └─ prompt.md
+      │
+      └─ ...
 ```
 
 Each iteration introduces a new layer of capabilities.
-
 The **root orchestrator automatically applies all missing iterations**.
 
 ---
@@ -100,21 +100,19 @@ To install or upgrade the engine in a repository:
 
 1. Open the root prompt:
 
-```
+```text
 codex_context_engine.md
 ```
 
 2. Execute it inside the target repository using Codex.
 
 The prompt will:
-
 - detect existing installations
 - determine the current iteration
 - apply the missing iterations
 - upgrade the engine safely
 
 This works for both:
-
 - fresh installations
 - upgrading existing installations
 
@@ -123,7 +121,6 @@ This works for both:
 # Iteration Model
 
 The engine evolves through incremental iterations.
-
 Each iteration adds new functionality while preserving compatibility with previous ones.
 
 ## Iteration 1 — External Memory Foundation
@@ -131,7 +128,6 @@ Each iteration adds new functionality while preserving compatibility with previo
 Introduces the concept of **persistent context memory** stored inside the repository.
 
 Main ideas:
-
 - reusable project knowledge
 - persistent preferences
 - graceful fallback behavior
@@ -143,7 +139,6 @@ Main ideas:
 Adds structure and observability.
 
 New capabilities:
-
 - structured `.codex_memory`
 - telemetry for token/context savings
 - validation and system diagnostics
@@ -155,7 +150,6 @@ New capabilities:
 Improves how context is selected and maintained.
 
 Features:
-
 - deterministic context packets
 - relevance scoring for memory entries
 - memory compaction
@@ -167,10 +161,21 @@ Features:
 Adds cross-project observability and system health monitoring.
 
 Features:
-
 - global telemetry aggregation
 - system health checks
 - cross-project savings reporting
+
+---
+
+## Iteration 5 — Context Cost Optimizer
+
+Adds a budget-aware optimization layer between packet assembly and model injection.
+
+Features:
+- estimated packet cost before injection
+- context budget thresholds
+- value-aware trimming and compression
+- optimization reports and cost observability
 
 ---
 
@@ -193,7 +198,6 @@ The system evolves through iterations rather than large rewrites.
 ### Safe Upgrades
 
 Upgrades should preserve:
-
 - memory
 - telemetry
 - project configuration
@@ -204,21 +208,24 @@ The system should be understandable and inspectable inside the repository.
 
 ---
 
-# What This Project Is
+# Active Roadmap
 
-Codex Context Engine is:
+The roadmap is now ordered by **impact and operational need**.
 
-- a context optimization system
-- a persistent knowledge layer for AI coding agents
-- a prompt-based architecture experiment
+| Iteration | Feature |
+|-----------|---------|
+| 5 | Context Cost Optimizer |
+| 6 | Context Planner |
+| 7 | Failure Memory |
+| 8 | Task-Specific Memory |
+| 9 | Memory Graph |
 
-It is **not**:
-
-- a full AI framework
-- a training system
-- a replacement for good prompts
-
-Instead, it focuses on making **context management smarter and cheaper**.
+This order reflects a practical strategy:
+1. reduce context cost first
+2. improve planning next
+3. learn from repeated failures
+4. specialize memory by task type
+5. evolve toward graph-based knowledge
 
 ---
 
@@ -229,3 +236,5 @@ Codex Context Engine explores a simple but powerful idea:
 > Context should behave like a system, not like a repeated prompt.
 
 By storing useful knowledge inside repositories and retrieving only relevant information, AI coding agents can become faster, cheaper, and more consistent across sessions.
+
+With Iteration 5, the engine begins optimizing not only **what it knows**, but also **how much of that knowledge reaches the model at execution time**.
