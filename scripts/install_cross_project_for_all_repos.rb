@@ -16,11 +16,13 @@ PROJECTS_INDEX = File.join(ENGINE_REPO, ".codex_global_metrics", "projects_index
 TIMESTAMP = Time.now.utc.iso8601
 AGENTS_BEGIN = "<!-- CODEX_CONTEXT_ENGINE:BEGIN -->".freeze
 AGENTS_END = "<!-- CODEX_CONTEXT_ENGINE:END -->".freeze
+LEGACY_ENGINE_PATH = "/Users/santisantamaria/Documents/projects/codex_context".freeze
 
 def git_repos
   Dir.glob(File.join(PROJECTS_DIR, "**", ".git"))
     .select { |path| File.directory?(path) }
     .map { |path| File.dirname(path) }
+    .reject { |path| File.expand_path(path) == LEGACY_ENGINE_PATH }
     .uniq
     .sort
 end
@@ -93,6 +95,17 @@ def write_json(path, payload)
   File.write(path, JSON.pretty_generate(payload) + "\n")
 end
 
+def strip_legacy_codex_context_sections(content)
+  cleaned = content.dup
+  cleaned.gsub!(/^## External Memory Required.*?(?=^## |\z)/m, "")
+  cleaned.gsub!(/^## Global Metrics Compatibility.*?(?=^## |\z)/m, "")
+  cleaned = cleaned.lines.reject do |line|
+    line.include?(LEGACY_ENGINE_PATH) || (line.match?(/\bcodex_context\b/) && !line.include?("codex_context_engine"))
+  end.join
+  cleaned.gsub!(/\n{3,}/, "\n\n")
+  cleaned.strip
+end
+
 def upsert_agents(repo_path)
   agents_path = File.join(repo_path, "AGENTS.md")
   block = engine_block(repo_path).strip
@@ -103,6 +116,7 @@ def upsert_agents(repo_path)
   end
 
   content = File.read(agents_path)
+  content = strip_legacy_codex_context_sections(content) unless content.include?(AGENTS_BEGIN)
   replacement = "#{block}\n"
 
   updated =
@@ -121,6 +135,16 @@ def upsert_agents(repo_path)
 end
 
 def install_repo(repo_path, installed_iteration)
+  if File.expand_path(repo_path) == ENGINE_REPO
+    return {
+      repo_path: repo_path,
+      created_agents: false,
+      updated_agents: false,
+      updated_state: false,
+      skipped_engine_repo: true
+    }
+  end
+
   state_path = File.join(repo_path, ".codex_context_engine", "state.json")
   agents_result = upsert_agents(repo_path)
   payload = state_payload(repo_path, installed_iteration)
@@ -144,6 +168,7 @@ def update_projects_index(repos, installed_iteration)
   projects = existing.fetch("projects", [])
   by_path = projects.each_with_object({}) do |entry, acc|
     normalized_key = entry["repo_path"] == "." ? ENGINE_REPO : entry["repo_path"]
+    next if File.expand_path(normalized_key) == LEGACY_ENGINE_PATH
     acc[normalized_key] = entry.merge("repo_path" => entry["repo_path"])
   end
 
